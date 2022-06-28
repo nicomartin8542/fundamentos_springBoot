@@ -64,7 +64,22 @@ public class FundamentosApplication implements CommandLineRunner {
 		users.add( new User("Jorge","jorge@gmail.com", LocalDate.of(2021, 03,20)));
 
 		userRepository.saveAll(users);
+		getUserByEmail();
+
 	}
+
+	private void getUserByEmail() {
+		try {
+			LOGGER.info("usuario : "+ userRepository.findByUseremail("nicomartin@gmail.com"));
+            LOGGER.info(userRepository.findByName("Nico"));
+			LOGGER.info(userRepository.findByNameAndEmail("Jorge", "jorge@gmail.com"));
+
+		} catch (Exception e)  {
+			LOGGER.error("No se encontro el usuario por el email");
+		}
+	}
+
+
 
 	private void clasesAnteriores() {
 		componentDependency.saludar();
