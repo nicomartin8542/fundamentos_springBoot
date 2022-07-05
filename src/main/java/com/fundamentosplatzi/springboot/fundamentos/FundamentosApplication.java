@@ -8,6 +8,7 @@ import com.fundamentosplatzi.springboot.fundamentos.component.ComponentDependenc
 import com.fundamentosplatzi.springboot.fundamentos.entity.User;
 import com.fundamentosplatzi.springboot.fundamentos.pojo.UserPojo;
 import com.fundamentosplatzi.springboot.fundamentos.repository.UserRepository;
+import com.fundamentosplatzi.springboot.fundamentos.service.UserService;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,7 +38,9 @@ public class FundamentosApplication implements CommandLineRunner {
 
 	private UserRepository userRepository;
 
-	public FundamentosApplication(@Qualifier("componentImplement") ComponentDependency componentDependency, MyBean myBean, MyOperation myOperation, MyBeanWithDependency myBeanWithDependency, MyBeanWithProperty myBeanWithProperty, UserPojo userPojo, UserRepository userRepository) {
+	private UserService userService;
+
+	public FundamentosApplication(@Qualifier("componentImplement") ComponentDependency componentDependency, MyBean myBean, MyOperation myOperation, MyBeanWithDependency myBeanWithDependency, MyBeanWithProperty myBeanWithProperty, UserPojo userPojo, UserRepository userRepository, UserService userService) {
 		this.componentDependency = componentDependency;
 		this.myBean = myBean;
 		this.myOperation = myOperation;
@@ -45,6 +48,7 @@ public class FundamentosApplication implements CommandLineRunner {
 		this.myBeanWithProperty = myBeanWithProperty;
 		this.userPojo = userPojo;
 		this.userRepository = userRepository;
+		this.userService = userService;
 	}
 
 	public static void main(String[] args) {
@@ -55,13 +59,29 @@ public class FundamentosApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		//clasesAnteriores();
 		saveUsersInDataBase();
+		saveWithErrorTransaccional();
 	}
 
 
+	private void saveWithErrorTransaccional() {
+		List<User> users = new ArrayList<>();
+		users.add( new User("Nico 1","nicomartin1@gmail.com", LocalDate.of(2021, 3,20)));
+		users.add( new User("Jorge 2","nicomartin1@gmail.com", LocalDate.of(2021, 3,20)));
+
+		try {
+			userService.saveUserTransaccion(users);
+		} catch ( Exception e) {
+			LOGGER.error("No se pudo completar el insert. Motivo: " + e);
+		}
+
+		userService.getAllUsers().stream().forEach(user -> LOGGER.info("Este es el usuario dentro del metodo transaccion" + user));
+
+	}
+
 	private void saveUsersInDataBase() {
 		List<User> users = new ArrayList<>();
-		users.add( new User("Nico","nicomartin@gmail.com", LocalDate.of(2021, 03,20)));
-		users.add( new User("Jorge","jorge@gmail.com", LocalDate.of(2021, 03,20)));
+		users.add( new User("Nico","nicomartin@gmail.com", LocalDate.of(2021, 3,20)));
+		users.add( new User("Jorge","jorge@gmail.com", LocalDate.of(2021, 3,20)));
 
 		userRepository.saveAll(users);
 		getUserByEmail();
@@ -73,6 +93,9 @@ public class FundamentosApplication implements CommandLineRunner {
 			LOGGER.info("usuario : "+ userRepository.findByUseremail("nicomartin@gmail.com"));
             LOGGER.info(userRepository.findByName("Nico"));
 			LOGGER.info(userRepository.findByNameAndEmail("Jorge", "jorge@gmail.com"));
+			LOGGER.info(userRepository.getAllByBirthDateAndEmail(LocalDate.of(2021, 3,20),
+					                                       "nicomartin@gmail.com")
+					.orElseThrow(()-> new RuntimeException("No se encontro el usuario por fecha y email")));
 
 		} catch (Exception e)  {
 			LOGGER.error("No se encontro el usuario por el email");

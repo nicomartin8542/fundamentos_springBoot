@@ -82,6 +82,7 @@ public class User {
     }
 
     //Methods toString
+
     @Override
     public String toString() {
         return "User{" +
@@ -89,6 +90,7 @@ public class User {
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", birthDate=" + birthDate +
+                ", posts=" + posts +
                 '}';
     }
 }
